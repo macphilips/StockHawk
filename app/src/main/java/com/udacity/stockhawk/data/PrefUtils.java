@@ -40,7 +40,6 @@ public final class PrefUtils {
     private static void editStockPref(Context context, String symbol, Boolean add) {
         String key = context.getString(R.string.pref_stocks_key);
         Set<String> stocks = getStocks(context);
-
         if (add) {
             stocks.add(symbol);
         } else {

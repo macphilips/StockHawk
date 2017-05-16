@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">الأسهم، هوك</string>
+    <string name="dialog_title">إضافة الأسهم</string>
+    <string name="dialog_hint">الرمز (على سبيل المثالGOOG )</string>
+    <string name="dialog_cancel">إلغاء</string>
+    <string name="dialog_add">إضافة</string>
+
+    <string name="error_no_network">لا اتصال الشبكة! سيتم تحميل الأسهم عندما تكون الشبكة متاحة.</string>
+    <string name="error_no_stocks">لم يتم إضافة أية أسهم! ضرب زر العمل العائمة لإضافة واحد.</string>
+
+    <string name="toast_stock_added_no_connectivity">تمت إضافة الرمز. سيتم تحديث عندما الشبكة المتاحة.</string>
+    <string name="toast_no_connectivity">سيتم تحديث عندما الشبكة المتاحة.</string>
+    <string name="crash_dialog_text">مربع حوار تحطم</string>
+    <string name="crash_dialog_title">تقرير الأعطال</string>
+    <string name="crash_dialog_comment_prompt">تؤكد</string>
+    <string name="crash_dialog_ok_toast">OK</string>
+    <string name="add_stock">إضافة الأسهم</string>
+    <string name="add_stock_dialog_edittext">أدخل الرمز</string>
+    <string name="title_activity_graph">رسم بياني</string>
+    <string name="empty_view_text">لا يوجد عنصر لعرضه</string>
+
+</resources>

@@ -1,6 +1,7 @@
 package com.udacity.stockhawk.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -19,9 +20,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.udacity.stockhawk.MyWidgetProvider;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
+import com.udacity.stockhawk.data.StockItem;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import butterknife.BindView;
@@ -33,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         StockAdapter.StockAdapterOnClickHandler {
 
     private static final int STOCK_LOADER = 0;
+    public static final String HISTORY = "history";
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.recycler_view)
     RecyclerView stockRecyclerView;
@@ -45,8 +49,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private StockAdapter adapter;
 
     @Override
-    public void onClick(String symbol) {
+    public void onClick(String symbol, String history) {
         Timber.d("Symbol clicked: %s", symbol);
+        startGraphActivity(history);
+    }
+
+    private void startGraphActivity(String history) {
+        Intent i = new Intent(this, Graph.class);
+        i.putExtra(HISTORY, history);
+        startActivity(i);
     }
 
     @Override
@@ -55,7 +66,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        Intent intent = getIntent();
+        if (intent.getAction().equalsIgnoreCase(MyWidgetProvider.LAUNCH_GRAPH)) {
+            StockItem item = intent.getParcelableExtra(MyWidgetProvider.STOCK);//intent.getExtras().getParcelable(MyWidgetProvider.STOCK);
+            String i =  intent.getStringExtra(MyWidgetProvider.EXTRA_ITEM);
 
+            Toast.makeText(this,String.valueOf(i )+" => "+String.valueOf(item),Toast.LENGTH_LONG).show();
+            if (item != null) {
+                startGraphActivity(item.getHistory());
+            }
+        }
         adapter = new StockAdapter(this, this);
         stockRecyclerView.setAdapter(adapter);
         stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -118,11 +138,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     void addStock(String symbol) {
         if (symbol != null && !symbol.isEmpty()) {
-
             if (networkUp()) {
                 swipeRefreshLayout.setRefreshing(true);
             } else {
-                String message = getString(R.string.toast_stock_added_no_connectivity, symbol);
+                String message = getString(R.string.toast_stock_added_no_connectivity);
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             }
 
