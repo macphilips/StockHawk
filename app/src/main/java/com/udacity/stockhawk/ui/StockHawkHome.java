@@ -1,11 +1,15 @@
 package com.udacity.stockhawk.ui;
 
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -20,23 +24,24 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.udacity.stockhawk.MyWidgetProvider;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
-import com.udacity.stockhawk.data.StockItem;
 import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
+import static com.udacity.stockhawk.Constants.ACTION_DATA_UPDATED;
+import static com.udacity.stockhawk.Constants.DATA_UPDATED_ERROR_TEXT;
+import static com.udacity.stockhawk.Constants.HISTORY;
+
+public class StockHawkHome extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         SwipeRefreshLayout.OnRefreshListener,
         StockAdapter.StockAdapterOnClickHandler {
 
     private static final int STOCK_LOADER = 0;
-    public static final String HISTORY = "history";
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.recycler_view)
     RecyclerView stockRecyclerView;
@@ -60,49 +65,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         startActivity(i);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
-        Intent intent = getIntent();
-        if (intent.getAction().equalsIgnoreCase(MyWidgetProvider.LAUNCH_GRAPH)) {
-            StockItem item = intent.getParcelableExtra(MyWidgetProvider.STOCK);//intent.getExtras().getParcelable(MyWidgetProvider.STOCK);
-            String i =  intent.getStringExtra(MyWidgetProvider.EXTRA_ITEM);
-
-            Toast.makeText(this,String.valueOf(i )+" => "+String.valueOf(item),Toast.LENGTH_LONG).show();
-            if (item != null) {
-                startGraphActivity(item.getHistory());
-            }
-        }
-        adapter = new StockAdapter(this, this);
-        stockRecyclerView.setAdapter(adapter);
-        stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        swipeRefreshLayout.setOnRefreshListener(this);
-        swipeRefreshLayout.setRefreshing(true);
-        onRefresh();
-
-        QuoteSyncJob.initialize(this);
-        getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
-
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
-                PrefUtils.removeStock(MainActivity.this, symbol);
-                getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
-            }
-        }).attachToRecyclerView(stockRecyclerView);
-
-
-    }
+    @VisibleForTesting
+    public ProgressDialog mProgressDialog;
 
     private boolean networkUp() {
         ConnectivityManager cm =
@@ -158,23 +122,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 null, null, Contract.Quote.COLUMN_SYMBOL);
     }
 
+    StockUpdateReceiver mReceieve = new StockUpdateReceiver();
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        hideProgressDialog();
         swipeRefreshLayout.setRefreshing(false);
 
-        if (data.getCount() != 0) {
+        if (!adapter.setCursor(data)) {
+            error.setVisibility(View.VISIBLE);
+            error.setText(getResources().getString(R.string.empty_view_text));
+        } else {
             error.setVisibility(View.GONE);
         }
-        adapter.setCursor(data);
+
     }
-
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        swipeRefreshLayout.setRefreshing(false);
-        adapter.setCursor(null);
-    }
-
 
     private void setDisplayModeMenuItemIcon(MenuItem item) {
         if (PrefUtils.getDisplayMode(this)
@@ -194,6 +156,48 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        swipeRefreshLayout.setRefreshing(false);
+        adapter.setResetCursor(null);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+
+        adapter = new StockAdapter(this, this);
+        stockRecyclerView.setAdapter(adapter);
+        stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setRefreshing(true);
+        showProgressDialog();
+        onRefresh();
+
+        QuoteSyncJob.initialize(this);
+        getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
+                PrefUtils.removeStock(StockHawkHome.this, symbol);
+                getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+                QuoteSyncJob.sendUpdateBroadcast(StockHawkHome.this, null);
+            }
+        })
+                .attachToRecyclerView(stockRecyclerView);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
@@ -204,5 +208,55 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage(getString(R.string.loading));
+            mProgressDialog.setIndeterminate(true);
+        }
+        mProgressDialog.show();
+    }
+
+    public void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_DATA_UPDATED);
+        registerReceiver(mReceieve, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mReceieve);
+    }
+
+    public class StockUpdateReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(ACTION_DATA_UPDATED)) {
+                swipeRefreshLayout.setRefreshing(false);
+                Loader loader = getSupportLoaderManager().getLoader(STOCK_LOADER);
+                if (loader == null) {
+                    getSupportLoaderManager().initLoader(STOCK_LOADER, null, StockHawkHome.this);
+                } else {
+                    getSupportLoaderManager().restartLoader(STOCK_LOADER, null, StockHawkHome.this);
+                }
+                String stringExtra = intent.getStringExtra(DATA_UPDATED_ERROR_TEXT);
+                if (stringExtra != null)
+                    ErrorDialog.newInstance(stringExtra)
+                            .show(getFragmentManager(), "ErrorDialogFragment");
+            }
+        }
     }
 }

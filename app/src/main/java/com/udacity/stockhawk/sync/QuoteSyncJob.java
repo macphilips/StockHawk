@@ -2,20 +2,17 @@ package com.udacity.stockhawk.sync;
 
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.udacity.stockhawk.MyWidgetProvider;
-import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 
@@ -37,10 +34,12 @@ import yahoofinance.histquotes.HistoricalQuote;
 import yahoofinance.histquotes.Interval;
 import yahoofinance.quotes.stock.StockQuote;
 
+import static com.udacity.stockhawk.Constants.ACTION_DATA_UPDATED;
+import static com.udacity.stockhawk.Constants.DATA_UPDATED_ERROR_TEXT;
+
 public final class QuoteSyncJob {
     private static final String TAG = QuoteSyncJob.class.getSimpleName();
     private static final int ONE_OFF_ID = 2;
-    private static final String ACTION_DATA_UPDATED = "com.udacity.stockhawk.ACTION_DATA_UPDATED";
     private static final int PERIOD = 300000;
     private static final int INITIAL_BACKOFF = 10000;
     private static final int PERIODIC_ID = 1;
@@ -73,21 +72,20 @@ public final class QuoteSyncJob {
             Iterator<String> iterator = stockCopy.iterator();
 
             Timber.d(quotes.toString());
-
+            String value = "";
             ArrayList<ContentValues> quoteCVs = new ArrayList<>();
 
             while (iterator.hasNext()) {
                 String symbol = iterator.next();
-
                 Stock stock = quotes.get(symbol);
-                StockQuote quote = stock.getQuote();
-                stock.print();
-                if (stock.getName() == null) {
-                    Toast.makeText(context, String.format("Symbol %s does not exists", symbol), Toast.LENGTH_LONG).show();
+                if (stock == null || stock.getName() == null) {
+               //     Toast.makeText(context, String.format("Symbol %s does not exists", symbol), Toast.LENGTH_LONG).show();
                     PrefUtils.removeStock(context, symbol);
+                    value = value + symbol + "\n";
                     continue;
                 }
-
+                StockQuote quote = stock.getQuote();
+                stock.print();
                 BigDecimal quotePrice = quote.getPrice();
                 float price = (quotePrice != null) ? quotePrice.floatValue() : 0;
                 BigDecimal quoteChange = quote.getChange();
@@ -119,17 +117,22 @@ public final class QuoteSyncJob {
                             Contract.Quote.URI,
                             quoteCVs.toArray(new ContentValues[quoteCVs.size()]));
 
-            Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED);
-            context.sendBroadcast(dataUpdatedIntent);
+            if (TextUtils.isEmpty(value)) {
+                value = null;
+            }
+            sendUpdateBroadcast(context, value);
 
-            AppWidgetManager manager = AppWidgetManager.getInstance(context);
-            ComponentName thisWidget = new ComponentName(context, MyWidgetProvider.class);
-            int[] allWidgetIds = manager.getAppWidgetIds(thisWidget);
-            manager.notifyAppWidgetViewDataChanged(allWidgetIds, R.id.flipper);
 
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");
         }
+    }
+
+    public static void sendUpdateBroadcast(Context context, String value) {
+        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED);
+        if (value != null)
+            dataUpdatedIntent.putExtra(DATA_UPDATED_ERROR_TEXT, value);
+        context.sendBroadcast(dataUpdatedIntent);
     }
 
     private static String getDay(Calendar date) {

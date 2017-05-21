@@ -67,8 +67,8 @@ public class AddStockDialog extends DialogFragment {
 
     private void addStock() {
         Activity parent = getActivity();
-        if (parent instanceof MainActivity) {
-            ((MainActivity) parent).addStock(stock.getText().toString());
+        if (parent instanceof StockHawkHome) {
+            ((StockHawkHome) parent).addStock(stock.getText().toString());
         }
         dismissAllowingStateLoss();
     }

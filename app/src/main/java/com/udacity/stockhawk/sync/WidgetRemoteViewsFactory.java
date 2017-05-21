@@ -27,7 +27,7 @@ import java.util.Locale;
  * .
  */
 
-public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+public class WidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private DecimalFormat dollarFormatWithPlus;
     private DecimalFormat dollarFormat;
     private DecimalFormat percentageFormat;
@@ -35,7 +35,7 @@ public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     private int mAppWidgetId;
     private List<StockItem> items;
 
-    StackRemoteViewsFactory(Context context, Intent intent) {
+    WidgetRemoteViewsFactory(Context context, Intent intent) {
         mContext = context;
         mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);

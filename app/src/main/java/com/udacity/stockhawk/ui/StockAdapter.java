@@ -42,9 +42,21 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
         percentageFormat.setPositivePrefix("+");
     }
 
-    void setCursor(Cursor cursor) {
+    private boolean isCursorEmpty(Cursor cursor) {
+        if (!cursor.moveToFirst() || cursor.getCount() == 0) {
+            cursor.close();
+            return true;
+        }
+        return false;
+    }
+
+
+    public boolean setCursor(Cursor cursor) {
+        if (cursor == null || isCursorEmpty(cursor)) return false;
         this.cursor = cursor;
+
         notifyDataSetChanged();
+        return true;
     }
 
     String getSymbolAtPosition(int position) {
@@ -54,9 +66,7 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 
     @Override
     public StockViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         View item = LayoutInflater.from(context).inflate(R.layout.list_item_quote, parent, false);
-
         return new StockViewHolder(item);
     }
 
@@ -64,12 +74,8 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
     public void onBindViewHolder(StockViewHolder holder, int position) {
 
         cursor.moveToPosition(position);
-
-
         holder.symbol.setText(cursor.getString(Contract.Quote.POSITION_SYMBOL));
         holder.price.setText(dollarFormat.format(cursor.getFloat(Contract.Quote.POSITION_PRICE)));
-
-
         float rawAbsoluteChange = cursor.getFloat(Contract.Quote.POSITION_ABSOLUTE_CHANGE);
         float percentageChange = cursor.getFloat(Contract.Quote.POSITION_PERCENTAGE_CHANGE);
 
@@ -99,6 +105,11 @@ class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
             count = cursor.getCount();
         }
         return count;
+    }
+
+    public void setResetCursor(Cursor resetCursor) {
+        this.cursor = resetCursor;
+        notifyDataSetChanged();
     }
 
 

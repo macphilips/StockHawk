@@ -10,13 +10,13 @@ import android.widget.RemoteViewsService;
  * .
  */
 
-public class StackWidgetService extends RemoteViewsService {
-    public StackWidgetService() {
+public class StockHawkWidgetService extends RemoteViewsService {
+    public StockHawkWidgetService() {
     }
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new WidgetRemoteViewsFactory(this.getApplicationContext(), intent);
     }
 
 }

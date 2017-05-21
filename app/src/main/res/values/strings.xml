@@ -36,5 +36,9 @@
     <string name="add_stock_dialog_edittext">Enter Symbol</string>
     <string name="title_activity_graph">Graph</string>
     <string name="empty_view_text">No item to display</string>
+    <string name="loading">Loading Stock</string>
+    <string name="ok">OK</string>
+    <string name="error_dialog_title">Error</string>
+    <string name="error_dialog_text">Error occurred while adding the following symbol(s):</string>
 
 </resources>

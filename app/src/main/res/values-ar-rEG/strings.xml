@@ -18,5 +18,9 @@
     <string name="add_stock_dialog_edittext">أدخل الرمز</string>
     <string name="title_activity_graph">رسم بياني</string>
     <string name="empty_view_text">لا يوجد عنصر لعرضه</string>
+    <string name="loading">تحميل المخزون</string>
+    <string name="ok">حسنا</string>
+    <string name="error_dialog_title">خطأ</string>
+    <string name="error_dialog_text">حدث خطأ أثناء إضافة الشفرة التالية:</string>
 
 </resources>

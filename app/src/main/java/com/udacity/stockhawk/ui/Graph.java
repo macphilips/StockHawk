@@ -34,7 +34,6 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.udacity.stockhawk.MyWidgetProvider;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.StockItem;
 
@@ -47,7 +46,8 @@ import java.util.List;
 
 import yahoofinance.histquotes.HistoricalQuote;
 
-import static com.udacity.stockhawk.ui.MainActivity.HISTORY;
+import static com.udacity.stockhawk.Constants.LAUNCH_GRAPH;
+import static com.udacity.stockhawk.Constants.HISTORY;
 
 public class Graph extends Activity implements OnChartGestureListener, OnChartValueSelectedListener {
 
@@ -67,7 +67,7 @@ public class Graph extends Activity implements OnChartGestureListener, OnChartVa
         setupLineGraph1();
         Intent intent = getIntent();
         String json = null;
-        if (intent.getAction().equalsIgnoreCase(MyWidgetProvider.LAUNCH_GRAPH)) {
+        if (intent.getAction().equalsIgnoreCase(LAUNCH_GRAPH)) {
             Toast.makeText(this, "Data => " + String.valueOf(intent.getData().toString()), Toast.LENGTH_LONG).show();
             Cursor cursor = ContentResolverCompat.query(getContentResolver(), intent.getData(), null, null, null, null, null);
             if (cursor == null || isCursorEmpty(cursor)) {
