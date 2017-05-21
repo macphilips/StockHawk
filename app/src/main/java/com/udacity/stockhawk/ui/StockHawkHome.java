@@ -122,7 +122,7 @@ public class StockHawkHome extends AppCompatActivity implements LoaderManager.Lo
                 null, null, Contract.Quote.COLUMN_SYMBOL);
     }
 
-    StockUpdateReceiver mReceieve = new StockUpdateReceiver();
+   private StockUpdateReceiver mReceiver = new StockUpdateReceiver();
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -230,13 +230,13 @@ public class StockHawkHome extends AppCompatActivity implements LoaderManager.Lo
         super.onResume();
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_DATA_UPDATED);
-        registerReceiver(mReceieve, filter);
+        registerReceiver(mReceiver, filter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mReceieve);
+        unregisterReceiver(mReceiver);
     }
 
     public class StockUpdateReceiver extends BroadcastReceiver {
@@ -244,8 +244,8 @@ public class StockHawkHome extends AppCompatActivity implements LoaderManager.Lo
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            swipeRefreshLayout.setRefreshing(false);
             if (action.equals(ACTION_DATA_UPDATED)) {
-                swipeRefreshLayout.setRefreshing(false);
                 Loader loader = getSupportLoaderManager().getLoader(STOCK_LOADER);
                 if (loader == null) {
                     getSupportLoaderManager().initLoader(STOCK_LOADER, null, StockHawkHome.this);
