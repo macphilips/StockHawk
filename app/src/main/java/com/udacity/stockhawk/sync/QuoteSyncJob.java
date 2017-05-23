@@ -31,7 +31,6 @@ import timber.log.Timber;
 import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
 import yahoofinance.histquotes.HistoricalQuote;
-import yahoofinance.histquotes.Interval;
 import yahoofinance.quotes.stock.StockQuote;
 
 import static com.udacity.stockhawk.Constants.ACTION_DATA_UPDATED;
@@ -94,7 +93,8 @@ public final class QuoteSyncJob {
                 float percentChange = (changeInPercent != null) ? changeInPercent.floatValue() : 0;
 
                 Log.d(TAG, symbol);
-                List<HistoricalQuote> history = stock.getHistory(from, to, Interval.WEEKLY);
+
+                List<HistoricalQuote> history = MockUtils.getHistory();
 
                 Gson gson = new Gson();
                 Type type = new TypeToken<List<HistoricalQuote>>() {
@@ -107,9 +107,7 @@ public final class QuoteSyncJob {
                 quoteCV.put(Contract.Quote.COLUMN_PERCENTAGE_CHANGE, percentChange);
                 quoteCV.put(Contract.Quote.COLUMN_ABSOLUTE_CHANGE, change);
                 quoteCV.put(Contract.Quote.COLUMN_HISTORY, jsonHistory);
-
                 quoteCVs.add(quoteCV);
-
             }
 
             context.getContentResolver()

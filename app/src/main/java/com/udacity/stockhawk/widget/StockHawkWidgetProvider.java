@@ -1,4 +1,4 @@
-package com.udacity.stockhawk;
+package com.udacity.stockhawk.widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -10,7 +10,7 @@ import android.net.Uri;
 import android.support.v4.app.TaskStackBuilder;
 import android.widget.RemoteViews;
 
-import com.udacity.stockhawk.sync.StockHawkWidgetService;
+import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.ui.Graph;
 
 import static com.udacity.stockhawk.Constants.LAUNCH_GRAPH;

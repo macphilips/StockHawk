@@ -1,6 +1,5 @@
-package com.udacity.stockhawk.sync;
+package com.udacity.stockhawk.widget;
 
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -27,19 +26,15 @@ import java.util.Locale;
  * .
  */
 
-public class WidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+  class WidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private DecimalFormat dollarFormatWithPlus;
     private DecimalFormat dollarFormat;
     private DecimalFormat percentageFormat;
     private Context mContext;
-    private int mAppWidgetId;
     private List<StockItem> items;
 
-    WidgetRemoteViewsFactory(Context context, Intent intent) {
+    WidgetRemoteViewsFactory(Context context) {
         mContext = context;
-        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID);
-
     }
 
 

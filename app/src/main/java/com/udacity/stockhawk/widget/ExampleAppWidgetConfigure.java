@@ -1,4 +1,4 @@
-package com.udacity.stockhawk;
+package com.udacity.stockhawk.widget;
 
 import android.app.Activity;
 
@@ -10,4 +10,5 @@ import android.app.Activity;
  */
 
 public class ExampleAppWidgetConfigure extends Activity {
+
 }

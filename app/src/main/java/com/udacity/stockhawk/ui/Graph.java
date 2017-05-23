@@ -12,7 +12,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -46,8 +45,8 @@ import java.util.List;
 
 import yahoofinance.histquotes.HistoricalQuote;
 
-import static com.udacity.stockhawk.Constants.LAUNCH_GRAPH;
 import static com.udacity.stockhawk.Constants.HISTORY;
+import static com.udacity.stockhawk.Constants.LAUNCH_GRAPH;
 
 public class Graph extends Activity implements OnChartGestureListener, OnChartValueSelectedListener {
 
@@ -67,14 +66,11 @@ public class Graph extends Activity implements OnChartGestureListener, OnChartVa
         setupLineGraph1();
         Intent intent = getIntent();
         String json = null;
-        if (intent.getAction().equalsIgnoreCase(LAUNCH_GRAPH)) {
-            Toast.makeText(this, "Data => " + String.valueOf(intent.getData().toString()), Toast.LENGTH_LONG).show();
-            Cursor cursor = ContentResolverCompat.query(getContentResolver(), intent.getData(), null, null, null, null, null);
-            if (cursor == null || isCursorEmpty(cursor)) {
-                //  finish();
-                Toast.makeText(this, "Cursor is null or empty", Toast.LENGTH_LONG).show();
+        String action = intent.getAction();
+        if (action != null && action.equalsIgnoreCase(LAUNCH_GRAPH)) {
+             Cursor cursor = ContentResolverCompat.query(getContentResolver(), intent.getData(), null, null, null, null, null);
+            if (cursor != null && !isCursorEmpty(cursor)) {
 
-            } else {
                 cursor.moveToFirst();
                 StockItem item = StockItem.buildFrom(cursor);
                 json = item.getHistory();

@@ -6,13 +6,14 @@
     android:orientation="vertical"
     android:padding="@dimen/widget_margin">
 
-    <AdapterViewFlipper
+    <ListView
         android:id="@+id/flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:autoStart="true"
         android:flipInterval="5000"
         android:gravity="center"
+        android:layout_gravity="center"
         android:loopViews="true" />
 
     <include layout="@layout/emtpy_item" />
